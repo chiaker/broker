@@ -1,0 +1,161 @@
+
+RABBIT | Duration: 60s
+Received: 3794 messages
+Throughput: 62.9 msg/sec
+Avg latency: 85.31 ms
+p95 latency: 3.24 ms
+RABBIT | Duration: 60s
+Received: 3790 messages
+Throughput: 62.8 msg/sec
+Avg latency: 2.70 ms
+p95 latency: 3.26 ms
+
+RABBIT | Duration: 60s
+Received: 3807 messages
+Throughput: 63.2 msg/sec
+Avg latency: 6.69 ms
+p95 latency: 3.73 ms
+
+RABBIT | Duration: 60s
+Received: 3800 messages
+Throughput: 63.0 msg/sec
+Avg latency: 2.97 ms
+p95 latency: 3.72 ms
+
+RABBIT | Duration: 60s
+Received: 3799 messages
+Throughput: 63.0 msg/sec
+Avg latency: 3.06 ms
+p95 latency: 3.95 ms
+
+RABBIT | Duration: 60s
+Received: 3802 messages
+Throughput: 63.1 msg/sec
+Avg latency: 3.05 ms
+p95 latency: 3.91 ms
+
+RABBIT | Duration: 60s
+Received: 3799 messages
+Throughput: 63.0 msg/sec
+Avg latency: 3.06 ms
+p95 latency: 3.91 ms
+
+RABBIT | Duration: 60s
+Received: 3745 messages
+Throughput: 62.1 msg/sec
+Avg latency: 2.97 ms
+p95 latency: 3.90 ms
+
+RABBIT | Duration: 60s
+Received: 3748 messages
+Throughput: 62.2 msg/sec
+Avg latency: 2.96 ms
+p95 latency: 3.88 ms
+
+RABBIT | Duration: 60s
+Received: 3745 messages
+Throughput: 62.1 msg/sec
+Avg latency: 2.96 ms
+p95 latency: 3.88 ms
+
+RABBIT | Duration: 60s
+Received: 3858 messages
+Throughput: 63.9 msg/sec
+Avg latency: 2.93 ms
+p95 latency: 3.96 ms
+
+RABBIT | Duration: 60s
+Received: 3858 messages
+Throughput: 63.9 msg/sec
+Avg latency: 2.92 ms
+p95 latency: 3.97 ms
+
+RABBIT | Duration: 60s
+Received: 3765 messages
+Throughput: 62.4 msg/sec
+Avg latency: 3.29 ms
+p95 latency: 5.06 ms
+
+RABBIT | Duration: 60s
+Received: 3761 messages
+Throughput: 62.3 msg/sec
+Avg latency: 3.29 ms
+p95 latency: 5.08 ms
+
+RABBIT | Duration: 60s
+Received: 3743 messages
+Throughput: 62.0 msg/sec
+Avg latency: 3.65 ms
+p95 latency: 5.92 ms
+
+RABBIT | Duration: 60s
+Received: 3738 messages
+Throughput: 62.0 msg/sec
+Avg latency: 3.62 ms
+p95 latency: 5.77 ms
+
+RABBIT | Duration: 60s
+Received: 3751 messages
+Throughput: 62.2 msg/sec
+Avg latency: 3.54 ms
+p95 latency: 5.41 ms
+
+RABBIT | Duration: 60s
+Received: 3754 messages
+Throughput: 62.2 msg/sec
+Avg latency: 3.53 ms
+p95 latency: 5.22 ms
+
+RABBIT | Duration: 60s
+Received: 3755 messages
+Throughput: 62.3 msg/sec
+Avg latency: 3.52 ms
+p95 latency: 5.18 ms
+
+RABBIT | Duration: 60s
+Received: 3753 messages
+Throughput: 62.2 msg/sec
+Avg latency: 3.55 ms
+p95 latency: 5.12 ms
+
+RABBIT | Duration: 60s
+Received: 3753 messages
+Throughput: 62.2 msg/sec
+Avg latency: 3.54 ms
+p95 latency: 5.27 ms
+
+RABBIT | Duration: 60s
+Received: 3722 messages
+Throughput: 61.7 msg/sec
+Avg latency: 5.97 ms
+p95 latency: 12.29 ms
+
+RABBIT | Duration: 60s
+Received: 3721 messages
+Throughput: 61.7 msg/sec
+Avg latency: 6.15 ms
+p95 latency: 12.19 ms
+
+RABBIT | Duration: 60s
+Received: 3760 messages
+Throughput: 62.4 msg/sec
+Avg latency: 6.01 ms
+p95 latency: 11.49 ms
+
+RABBIT | Duration: 60s
+Received: 3757 messages
+Throughput: 62.3 msg/sec
+Avg latency: 6.12 ms
+p95 latency: 11.33 ms
+
+RABBIT | Duration: 60s
+Received: 3756 messages
+Throughput: 62.3 msg/sec
+Avg latency: 5.94 ms
+p95 latency: 10.89 ms
+
+RABBIT | Duration: 60s
+Received: 3757 messages
+Throughput: 62.3 msg/sec
+Avg latency: 5.72 ms
+p95 latency: 10.61 ms
