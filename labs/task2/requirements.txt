@@ -1,0 +1,6 @@
+pika
+redis
+pandas
+matplotlib
+tqdm
+pyyaml

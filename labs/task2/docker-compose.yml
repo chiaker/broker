@@ -1,20 +1,28 @@
 version: '3.8'
+
 services:
   rabbitmq:
-    image: rabbitmq:4.0-management
-    container_name: rabbitmq
-    ports: ["5672:5672", "15672:15672"]
+    image: rabbitmq:3-management
+    container_name: rabbitmq-bench
+    ports:
+      - "5672:5672"
+      - "15672:15672"
     environment:
       RABBITMQ_DEFAULT_USER: guest
       RABBITMQ_DEFAULT_PASS: guest
-    command: rabbitmq-server
-    cpus: 2
-    mem_limit: 2g
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
 
   redis:
-    image: redis:7.4-alpine
-    container_name: redis
-    ports: ["6379:6379"]
-    command: redis-server --appendonly yes
-    cpus: 2
-    mem_limit: 2g
+    image: redis:latest
+    container_name: redis-bench
+    ports:
+      - "6379:6379"
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 512M
