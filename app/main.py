@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import asyncio
-from contextlib import suppress
+from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 
@@ -16,9 +16,16 @@ from app.schemas import (
 )
 from app.stomp import build_stomp_frame, parse_stomp_frame
 
-
-app = FastAPI(title="Broker Stage 2 Prototype")
 broker = InMemoryBroker()
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    await broker.startup()
+    yield
+
+
+app = FastAPI(title="Broker Stage 3", lifespan=lifespan)
 
 
 def _normalize_destination(value: str) -> str:
@@ -59,7 +66,7 @@ async def publish(topic_name: str, payload: PublishRequest) -> PublishResponse:
 @app.post("/subscriptions", response_model=SubscriptionCreateResponse)
 async def create_subscription(payload: SubscriptionCreateRequest) -> SubscriptionCreateResponse:
     destination = _normalize_destination(payload.destination)
-    subscription = await broker.subscribe(destination)
+    subscription = await broker.subscribe(destination, subscription_id=payload.subscription_id)
     return SubscriptionCreateResponse(
         subscription_id=subscription.subscription_id,
         destination=subscription.destination,

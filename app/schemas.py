@@ -17,6 +17,7 @@ class PublishResponse(BaseModel):
 
 class SubscriptionCreateRequest(BaseModel):
     destination: str
+    subscription_id: str | None = None
 
 
 class SubscriptionCreateResponse(BaseModel):

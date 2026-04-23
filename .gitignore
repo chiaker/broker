@@ -1,0 +1,13 @@
+# Runtime data
+data/
+
+# Python
+__pycache__/
+app/__pycache__/
+*.py[cod]
+.venv/
+dist/
+*.egg-info/
+
+# Pytest
+.pytest_cache/
