@@ -170,7 +170,7 @@ class InMemoryBroker:
         async with self._lock:
             sub = self._subscriptions_by_id.get(subscription_id)
             if sub is None:
-                return None
+                raise KeyError(subscription_id)
             offset = self._offsets.get(subscription_id, 0)
             journal = self._get_journal(sub.destination)
 

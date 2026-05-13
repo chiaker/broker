@@ -1,0 +1,10 @@
+services:
+  broker:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - broker-data:/app/data
+
+volumes:
+  broker-data:

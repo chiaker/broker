@@ -3,7 +3,7 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager, suppress
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 
 from app.broker import InMemoryBroker
 from app.schemas import (
@@ -81,7 +81,10 @@ async def delete_subscription(subscription_id: str) -> dict[str, str]:
 
 @app.get("/subscriptions/{subscription_id}/poll", response_model=PollResponse | None)
 async def poll(subscription_id: str, timeout: float = 5.0) -> PollResponse | None:
-    message = await broker.poll(subscription_id, timeout_seconds=timeout)
+    try:
+        message = await broker.poll(subscription_id, timeout_seconds=timeout)
+    except KeyError:
+        raise HTTPException(status_code=404, detail=f"Subscription '{subscription_id}' not found")
     if message is None:
         return None
     return PollResponse(
