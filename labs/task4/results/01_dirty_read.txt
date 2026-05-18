@@ -1,0 +1,58 @@
+======================================================================
+АНОМАЛИЯ: DIRTY READ  (MySQL READ UNCOMMITTED)
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL READ UNCOMMITTED   -- T1 будет видеть незакоммиченные данные
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- до правок T2
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] UPDATE accounts SET balance = balance - 200 WHERE id=1   -- НЕ коммитим
+   -> affected rows: 1
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- DIRTY READ: видим незакоммиченные 800
+|   balance |
+|-----------|
+|       800 |
+
+[T2] ROLLBACK
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- после ROLLBACK T2 значение снова 1000
+|   balance |
+|-----------|
+|      1000 |
+
+[T1] COMMIT
+
+======================================================================
+FIX: тот же сценарий, но T1 на READ COMMITTED
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] UPDATE accounts SET balance = balance - 200 WHERE id=1
+   -> affected rows: 1
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- видим 1000 — грязное чтение исключено
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] ROLLBACK
+
+[T1] COMMIT
+

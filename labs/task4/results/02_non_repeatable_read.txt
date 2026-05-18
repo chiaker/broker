@@ -1,0 +1,61 @@
+======================================================================
+АНОМАЛИЯ: NON-REPEATABLE READ  (READ COMMITTED)
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T2] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- первое чтение
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] UPDATE accounts SET balance = 1500 WHERE id=1
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- NON-REPEATABLE: значение в той же T1 уже другое
+|   balance |
+|-----------|
+|      1500 |
+
+[T1] COMMIT
+
+======================================================================
+FIX: T1 на REPEATABLE READ — snapshot фиксируется на старте
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL REPEATABLE READ
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- закрепляем snapshot
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] UPDATE accounts SET balance = 1500 WHERE id=1
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- всё ещё 1000 — повторное чтение стабильно
+|   balance |
+|-----------|
+|      1000 |
+
+[T1] COMMIT
+

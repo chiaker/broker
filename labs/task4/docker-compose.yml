@@ -1,0 +1,22 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: task4_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root_pwd
+      MYSQL_DATABASE: isolab
+      MYSQL_USER: iso
+      MYSQL_PASSWORD: iso_pwd
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uiso", "-piso_pwd"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  mysql_data:

@@ -1,0 +1,100 @@
+======================================================================
+АНОМАЛИЯ: LOST UPDATE  (read-modify-write race)
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T2] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT balance FROM accounts WHERE id=1   -- T1 прочитал 1000, хочет +100
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] SELECT balance FROM accounts WHERE id=1   -- T2 прочитал 1000, хочет -50
+|   balance |
+|-----------|
+|      1000 |
+
+[T1] UPDATE accounts SET balance = 1100 WHERE id=1
+   -> affected rows: 1
+
+[T1] COMMIT
+
+[T2] UPDATE accounts SET balance = 950 WHERE id=1   -- перетёр +100 от T1
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[CHECK] SELECT balance FROM accounts WHERE id=1   -- итог = 950, изменение T1 ПОТЕРЯНО (ожидалось 1050)
+|   balance |
+|-----------|
+|       950 |
+
+======================================================================
+FIX 1: атомарный UPDATE без read-modify-write
+======================================================================
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T1] UPDATE accounts SET balance = balance + 100 WHERE id=1
+   -> affected rows: 1
+
+[T1] COMMIT
+
+[T2] UPDATE accounts SET balance = balance - 50 WHERE id=1
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[CHECK] SELECT balance FROM accounts WHERE id=1   -- итог = 1050 — обе операции применились
+|   balance |
+|-----------|
+|      1050 |
+
+======================================================================
+FIX 2: пессимистичная блокировка — SELECT ... FOR UPDATE
+======================================================================
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT balance FROM accounts WHERE id=1 FOR UPDATE   -- T1 захватил X-lock на строку
+|   balance |
+|-----------|
+|      1000 |
+
+[T2] SELECT ... FOR UPDATE будет ждать освобождения локa T1 (демонстрируем словесно, чтобы не зависнуть).
+
+[T1] UPDATE accounts SET balance = balance + 100 WHERE id=1
+   -> affected rows: 1
+
+[T1] COMMIT
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] SELECT balance FROM accounts WHERE id=1 FOR UPDATE   -- теперь T2 видит уже 1100, считает от него
+|   balance |
+|-----------|
+|      1100 |
+
+[T2] UPDATE accounts SET balance = balance - 50 WHERE id=1
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[CHECK] SELECT balance FROM accounts WHERE id=1   -- итог = 1050 — потери нет
+|   balance |
+|-----------|
+|      1050 |
+

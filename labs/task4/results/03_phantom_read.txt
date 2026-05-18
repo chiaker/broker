@@ -1,0 +1,52 @@
+======================================================================
+АНОМАЛИЯ: PHANTOM READ  (READ COMMITTED)
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL READ COMMITTED
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT COUNT(*) AS cnt FROM products WHERE category='book'   -- ожидаем 5
+|   cnt |
+|-------|
+|     5 |
+
+[T2] START TRANSACTION
+   -> affected rows: 0
+
+[T2] INSERT INTO products (name, price, category) VALUES ('Phantom Book', 100, 'book')
+   -> affected rows: 1
+
+[T2] COMMIT
+
+[T1] SELECT COUNT(*) AS cnt FROM products WHERE category='book'   -- PHANTOM: появилась новая строка в диапазоне
+|   cnt |
+|-------|
+|     6 |
+
+[T1] COMMIT
+
+======================================================================
+FIX: T1 на SERIALIZABLE — COUNT стабильный
+======================================================================
+[T1] SET SESSION TRANSACTION ISOLATION LEVEL SERIALIZABLE
+   -> affected rows: 0
+
+[T1] START TRANSACTION
+   -> affected rows: 0
+
+[T1] SELECT COUNT(*) AS cnt FROM products WHERE category='book'
+|   cnt |
+|-------|
+|     5 |
+
+[T2] попытка INSERT в этот же диапазон будет ждать коммита T1 (демонстрируем словесно, чтобы не зависнуть).
+
+[T1] SELECT COUNT(*) AS cnt FROM products WHERE category='book'   -- всё ещё 5 — фантомов нет
+|   cnt |
+|-------|
+|     5 |
+
+[T1] COMMIT
+
