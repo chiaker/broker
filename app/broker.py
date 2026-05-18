@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
@@ -33,6 +34,11 @@ class InMemoryBroker:
         self._journals: dict[str, TopicJournal] = {}
         self._offsets: dict[str, int] = {}
         self._lock = asyncio.Lock()
+        # Cumulative counters for Prometheus.
+        self._published_total: dict[str, int] = defaultdict(int)
+        self._polled_total: dict[str, int] = defaultdict(int)
+        self._subs_created_total: int = 0
+        self._subs_destroyed_total: int = 0
 
     async def startup(self) -> None:
         """Restore topics from persisted journal files."""
@@ -116,6 +122,7 @@ class InMemoryBroker:
             # Resume from saved offset if available; otherwise start at current end.
             saved = self._load_offset(sid, destination)
             self._offsets[sid] = saved if saved is not None else self._get_journal(destination).size
+            self._subs_created_total += 1
             return subscription
 
     async def unsubscribe(self, subscription_id: str) -> None:
@@ -134,6 +141,7 @@ class InMemoryBroker:
         if dest_map is not None:
             dest_map.pop(subscription_id, None)
         self._offsets.pop(subscription_id, None)
+        self._subs_destroyed_total += 1
 
     # ── publish / poll ────────────────────────────────────────────────────────
 
@@ -154,6 +162,7 @@ class InMemoryBroker:
             )
             delivered_to = len(self._subscriptions_by_destination.get(destination, {}))
             journal = self._get_journal(destination)
+            self._published_total[destination] += 1
 
         await journal.append(
             {
@@ -183,6 +192,7 @@ class InMemoryBroker:
             if subscription_id in self._subscriptions_by_id:
                 self._offsets[subscription_id] = new_offset
                 self._save_offset(subscription_id, new_offset, record["destination"])
+                self._polled_total[record["destination"]] += 1
 
         return BrokerMessage(
             message_id=record["message_id"],
@@ -191,3 +201,16 @@ class InMemoryBroker:
             headers=record.get("headers", {}),
             published_at=record["published_at"],
         )
+
+    # ── metrics ───────────────────────────────────────────────────────────────
+
+    def snapshot_metrics(self) -> dict:
+        return {
+            "topics_total": len(self._topics),
+            "subscriptions_active": len(self._subscriptions_by_id),
+            "journal_sizes": {dest: j.size for dest, j in self._journals.items()},
+            "published_total": dict(self._published_total),
+            "polled_total": dict(self._polled_total),
+            "subs_created_total": self._subs_created_total,
+            "subs_destroyed_total": self._subs_destroyed_total,
+        }

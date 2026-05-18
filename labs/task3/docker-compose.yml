@@ -1,0 +1,98 @@
+networks:
+  default:
+    name: task3_net
+
+services:
+  db:
+    image: postgres:16
+    container_name: task3_db
+    environment:
+      POSTGRES_DB: shop
+      POSTGRES_USER: shop_user
+      POSTGRES_PASSWORD: shop_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U shop_user -d shop"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7
+    container_name: task3_redis
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  app-lazy:
+    build: ./app
+    container_name: task3_app_lazy
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      CACHE_MODE: lazy
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: shop
+      DB_USER: shop_user
+      DB_PASSWORD: shop_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8001:8000"
+
+  app-wt:
+    build: ./app
+    container_name: task3_app_wt
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      CACHE_MODE: write_through
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: shop
+      DB_USER: shop_user
+      DB_PASSWORD: shop_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "8002:8000"
+
+  app-wb:
+    build: ./app
+    container_name: task3_app_wb
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      CACHE_MODE: write_back
+      DB_HOST: db
+      DB_PORT: 5432
+      DB_NAME: shop
+      DB_USER: shop_user
+      DB_PASSWORD: shop_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      WB_FLUSH_INTERVAL: "2.0"
+      WB_FLUSH_BATCH: "100"
+    ports:
+      - "8003:8000"
+
+volumes:
+  postgres_data:

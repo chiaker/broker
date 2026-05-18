@@ -4,6 +4,7 @@ import asyncio
 from contextlib import asynccontextmanager, suppress
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
+from fastapi.responses import PlainTextResponse
 
 from app.broker import InMemoryBroker
 from app.schemas import (
@@ -35,6 +36,48 @@ def _normalize_destination(value: str) -> str:
 @app.get("/health")
 async def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+def _escape_label(value: str) -> str:
+    return value.replace("\\", "\\\\").replace('"', '\\"').replace("\n", "\\n")
+
+
+@app.get("/metrics", response_class=PlainTextResponse)
+async def metrics() -> str:
+    snap = broker.snapshot_metrics()
+    lines: list[str] = []
+
+    def gauge(name: str, help_text: str, value: int) -> None:
+        lines.append(f"# HELP {name} {help_text}")
+        lines.append(f"# TYPE {name} gauge")
+        lines.append(f"{name} {value}")
+
+    def counter(name: str, help_text: str, value: int) -> None:
+        lines.append(f"# HELP {name} {help_text}")
+        lines.append(f"# TYPE {name} counter")
+        lines.append(f"{name} {value}")
+
+    def labeled_gauge(name: str, help_text: str, values: dict[str, int]) -> None:
+        lines.append(f"# HELP {name} {help_text}")
+        lines.append(f"# TYPE {name} gauge")
+        for dest, val in values.items():
+            lines.append(f'{name}{{destination="{_escape_label(dest)}"}} {val}')
+
+    def labeled_counter(name: str, help_text: str, values: dict[str, int]) -> None:
+        lines.append(f"# HELP {name} {help_text}")
+        lines.append(f"# TYPE {name} counter")
+        for dest, val in values.items():
+            lines.append(f'{name}{{destination="{_escape_label(dest)}"}} {val}')
+
+    gauge("broker_topics_total", "Current number of topics", snap["topics_total"])
+    gauge("broker_subscriptions_active", "Currently active subscriptions", snap["subscriptions_active"])
+    labeled_gauge("broker_journal_size", "Messages in topic journal", snap["journal_sizes"])
+    labeled_counter("broker_messages_published_total", "Total messages published", snap["published_total"])
+    labeled_counter("broker_messages_polled_total", "Total messages delivered via poll", snap["polled_total"])
+    counter("broker_subscriptions_created_total", "Total subscriptions created", snap["subs_created_total"])
+    counter("broker_subscriptions_destroyed_total", "Total subscriptions destroyed", snap["subs_destroyed_total"])
+
+    return "\n".join(lines) + "\n"
 
 
 @app.get("/topics")
